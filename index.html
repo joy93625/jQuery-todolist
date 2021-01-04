@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        .wrapper {
+            width: 500px;
+            margin: 0 auto;
+            border: 1px solid gray;
+            padding: 10px;
+            
+        }
+        .title {
+            font-size: 36px;
+            text-align: center;
+        }
+        .todo-add {
+            display: flex;
+        }
+        .input_add {
+            flex:1
+        }
+        .filters {
+            display: flex;
+        }
+        .filters div {
+            border: 1px solid gray;
+            padding: 5px;
+            margin: 10px 5px 10px 0;
+            cursor: pointer;
+        }
+        .todo {
+            display: flex;
+            position: relative;
+            padding: 10px;
+        }
+        .todo + .todo {
+                margin-top: 10px;
+            }
+        .todo-item__state {
+            margin-right: 10px;
+        }
+        .btns {
+            display: flex;
+            position: absolute;
+            right: 0;
+            cursor: pointer;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="title">Todo List</div>
+        <div class="todo-add">
+            <input class="input_add" type="text" placeholder="...">
+            <button class="btn_add">新增</button>
+        </div>
+        <div class="filters">
+            <div class="filters-all">全部</div>
+            <div class="filters-done">已完成</div>
+            <div class="filters-undone">未完成</div>
+        </div>
+        <div class="todos">
+
+        </div>
+    </div>
+    <script>
+        var todos = []
+        var id = 1
+        function setData () {
+            render(todos)
+            window.localStorage.setItem('todoapp', JSON.stringify(todos))
+        }
+        function render(todoList) {
+            $('.todos').empty()
+            for (var i = 0; i < todoList.length; i++) {
+                $('.todos').append(`
+                    <div class="todo ${todoList[i].isdone ? 'done' : ''}" data-id=${todoList[i].id}>
+                        <div class="todo-item__state">${todoList[i].isdone ? 'O' : 'X'}</div>
+                        <div class="todo-item__content">${todoList[i].content}</div>
+                        <div class="btns">
+                            <button class="btn_mark">${todoList[i].isdone ? '已完成' : '未完成'}</button>
+                            <button class="btn_delete">刪除</button>
+                        </div>
+                    </div>
+                `)
+            }
+        }
+        const todoData = window.localStorage.getItem('todoapp')
+        if (todoData) {
+            todos = JSON.parse(todoData)
+            render(todos)
+            id = todos[todos.length - 1].id +1;
+        }
+        $('.btn_add').click(()=> {
+            const content = $('.input_add').val();
+            if (!content) return
+            todos.push({
+                id,
+                content,
+                isdone: false
+            })
+            setData()
+            
+            $('.input_add').val('')
+            id++
+        })
+        $('.input_add').keydown( e => {
+            if (e.key === 'Enter') {
+                const content = $('.input_add').val();
+                if (!content) return
+                todos.push({
+                    id,
+                    content,
+                    isdone: false
+                })
+                setData()
+                $('.input_add').val('')
+                id++
+            }
+        })
+        $('.todos').on('click', '.btn_mark', e => {
+            const $item = $(e.target)
+            const state = $item.parent().parent().find('.todo-item__state').text()
+            const id = Number($item.parent().parent().attr('data-id'))
+            todos = todos.map(todo = todo => {
+                if (todo.id !== id) return todo
+                return {
+                    ...todo,
+                    isdone: !todo.isdone
+                }
+            } )
+            setData()
+        })
+        $('.todos').on('click', '.btn_delete', e => {
+            const id = $(e.target).parent().parent().attr('data-id')
+            todos = todos.filter( todo => todo.id !== Number(id))
+            setData()
+        })
+        $('.filters-all').click(e => {
+            $('.todo').show()
+        })
+        $('.filters-done').click(e => {
+            $('.todo').hide()
+            $('.todo.done').show()
+
+        })
+        $('.filters-undone').click(e => {
+            $('.todo').show()
+            $('.todo.done').hide()
+        })
+    </script>
+</body>
+</html>
